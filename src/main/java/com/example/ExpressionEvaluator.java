@@ -1,21 +1,18 @@
 package com.example;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+import net.objecthunter.exp4j.Expression;
+import net.objecthunter.exp4j.ExpressionBuilder;
 
 public class ExpressionEvaluator {
-
-    private static final ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
-
     public static double evaluate(String expression) {
         try {
-            Object result = engine.eval(expression);
-            return Double.parseDouble(result.toString());
-        } catch (ScriptException | NumberFormatException e) {
+            Expression exp = new ExpressionBuilder(expression).build();
+            return exp.evaluate();
+        } catch (Exception e) {
             System.err.println("Invalid expression: " + expression);
             return Double.NaN;
         }
     }
 }
+
 

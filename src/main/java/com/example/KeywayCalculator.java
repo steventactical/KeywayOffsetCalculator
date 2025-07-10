@@ -4,7 +4,7 @@ public class KeywayCalculator {
 
     // Method 1: From bottom of diameter to bottom of keyway
     public static double fromBottomOfDiameter(double diameter, double distanceFromBottom) {
-        return (diameter / 2.0) - distanceFromBottom;
+        return Math.abs((diameter / 2.0) - distanceFromBottom);
     }
 
     // Method 2: From flat across top of keyway to bottom of keyway
