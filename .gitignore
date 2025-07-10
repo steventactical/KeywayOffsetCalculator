@@ -1,0 +1,22 @@
+# Maven target folder
+target/
+
+# VS Code project files
+.vscode/
+
+# IDE-specific files
+*.iml
+.idea/
+
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Compiled class files
+*.class
+
+# Temporary files
+*.tmp
