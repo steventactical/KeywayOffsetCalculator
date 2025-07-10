@@ -8,9 +8,10 @@ import javafx.stage.Stage;
 public class Main extends Application {
     @Override
     public void start(Stage stage) {
-        Label label = new Label("JavaFX is working!");
+        // Basic UI just so the window still opens
+        Label label = new Label("Check the terminal for method test results.");
         Scene scene = new Scene(label, 400, 200);
-        stage.setTitle("Test App");
+        stage.setTitle("Keyway Offset Calculator");
         stage.setScene(scene);
         stage.show();
     }
