@@ -42,7 +42,10 @@ public void start(Stage stage) {
 
     // Output label
     Label offsetLabel = new Label("Offset:");
-    Label resultLabel = new Label("----");
+    offsetLabel.getStyleClass().add("offset-label");
+
+    Label resultLabel = new Label("      ");
+    resultLabel.getStyleClass().add("offset-value");
 
     HBox offsetRow = new HBox(5, offsetLabel, resultLabel);
     offsetRow.setAlignment(Pos.CENTER_LEFT);
@@ -57,8 +60,8 @@ public void start(Stage stage) {
     Button copyBtn = new Button("Copy");
 
     // Horizontal row for buttons and offset output
-    HBox buttonRow = new HBox(20,
-        new HBox(10, calculateBtn, clearBtn, copyBtn),  // 👈 Add copyBtn here
+    HBox buttonRow = new HBox(5,
+        new HBox(5, calculateBtn, clearBtn, copyBtn),
         offsetRow
     );
     buttonRow.setAlignment(Pos.CENTER);
@@ -109,13 +112,13 @@ public void start(Stage stage) {
         inputA.clear();
         inputB.clear();
         inputC.clear();
-        resultLabel.setText("----");
+        resultLabel.setText("      ");
     });
 
     // Copy button press
     copyBtn.setOnAction(e -> {
     String resultText = resultLabel.getText();
-        if (!resultText.equals("----") && !resultText.equals("Error")) {
+        if (!resultText.equals("      ") && !resultText.equals("Error")) {
             Clipboard clipboard = Clipboard.getSystemClipboard();
             ClipboardContent content = new ClipboardContent();
             content.putString(resultText);
@@ -152,7 +155,7 @@ public void start(Stage stage) {
         }
 
         // Keep or clear other UI as needed
-        resultLabel.setText("----");
+        resultLabel.setText("      ");
     });
 
     VBox layout = new VBox(15,
@@ -166,7 +169,8 @@ public void start(Stage stage) {
     layout.setAlignment(Pos.TOP_CENTER);
     layout.setPadding(new Insets(20));
 
-    Scene scene = new Scene(layout, 320, 475);
+    Scene scene = new Scene(layout, 360, 475);
+    scene.getStylesheets().add(getClass().getResource("/styles/style.css").toExternalForm());
     stage.setTitle("Keyway Offset Calculator");
     stage.setScene(scene);
     stage.show();
