@@ -7,6 +7,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -39,6 +40,11 @@ public void start(Stage stage) {
     // Calculate button
     Button calculateBtn = new Button("Calculate");
 
+    // Clear button
+    Button clearBtn = new Button("Clear");
+
+    HBox buttonRow = new HBox(10, calculateBtn, clearBtn);
+
     calculateBtn.setOnAction(e -> {
     try {
         String method = methodSelector.getValue();
@@ -61,12 +67,19 @@ public void start(Stage stage) {
             result = KeywayCalculator.fromTopOfDiameter(a, b);
         }
 
-        resultLabel.setText("Offset = " + result);
-    } catch (Exception ex) {
-        ex.printStackTrace(); // helpful while debugging
-        resultLabel.setText("Error: Invalid input.");
-    }
-});
+        resultLabel.setText("Offset = " + String.format("%.4f", result));
+        } catch (Exception ex) {
+            ex.printStackTrace(); // helpful while debugging
+            resultLabel.setText("Error: Invalid input.");
+        }
+    });
+
+    clearBtn.setOnAction(e -> {
+        inputA.clear();
+        inputB.clear();
+        inputC.clear();
+        resultLabel.setText("Offset will appear here.");
+    });
 
     // When dropdown changes, update input labels/visibility
     methodSelector.setOnAction(e -> {
@@ -83,7 +96,7 @@ public void start(Stage stage) {
         }
     });
 
-    VBox layout = new VBox(10, methodSelector, inputA, inputB, inputC, calculateBtn, resultLabel);
+    VBox layout = new VBox(10, methodSelector, inputA, inputB, inputC, buttonRow, resultLabel);
     layout.setPadding(new Insets(20));
 
     Scene scene = new Scene(layout, 400, 300);
