@@ -7,177 +7,173 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class Main extends Application {
     @Override
-public void start(Stage stage) {
-    // Method selection dropdown
-    ComboBox<String> methodSelector = new ComboBox<>();
-    methodSelector.getItems().addAll(
-        "1. Bottom of diameter to bottom of keyway",
-        "2. Flat across top to bottom of keyway",
-        "3. Top of theoretical diameter to bottom of keyway"
-    );
-    methodSelector.setValue("1. Bottom of diameter to bottom of keyway");
+    public void start(Stage stage) {
+        ComboBox<String> methodSelector = new ComboBox<>();
+        methodSelector.getItems().addAll(
+            "1. Bottom of diameter to bottom of keyway",
+            "2. Flat across top to bottom of keyway",
+            "3. Top of theoretical diameter to bottom of keyway"
+        );
+        methodSelector.setValue("1. Bottom of diameter to bottom of keyway");
 
-    // Input fields
-    TextField inputA = new TextField();
-    inputA.setPromptText("Diameter (A)");
+        List<String> calculationLog = new ArrayList<>();
 
-    TextField inputB = new TextField();
-    inputB.setPromptText("Distance or Depth (B)");
+        TextField inputA = new TextField();
+        inputA.setPromptText("Diameter (A)");
 
-    TextField inputC = new TextField(); // only used for method 2
-    inputC.setPromptText("Enter C");
-    inputC.setVisible(false); // only shown for method 2
+        TextField inputB = new TextField();
+        inputB.setPromptText("Distance or Depth (B)");
 
-    // Output label
-    Label offsetLabel = new Label("Offset:");
-    offsetLabel.getStyleClass().add("offset-label");
+        TextField inputC = new TextField();
+        inputC.setPromptText("Enter C");
+        inputC.setVisible(false);
 
-    Label resultLabel = new Label("      ");
-    resultLabel.getStyleClass().add("offset-value");
+        Label offsetLabel = new Label("Offset:");
+        offsetLabel.getStyleClass().add("offset-label");
 
-    HBox offsetRow = new HBox(5, offsetLabel, resultLabel);
-    offsetRow.setAlignment(Pos.CENTER_LEFT);
+        Label resultLabel = new Label("      ");
+        resultLabel.setPrefWidth(50);
+        resultLabel.setStyle("-fx-alignment: center-right;");
+        resultLabel.getStyleClass().add("offset-value");
 
-    // Calculate button
-    Button calculateBtn = new Button("Calculate");
+        HBox offsetRow = new HBox(5, offsetLabel, resultLabel);
+        offsetRow.setAlignment(Pos.CENTER_LEFT);
 
-    // Clear button
-    Button clearBtn = new Button("Clear");
+        Button calculateBtn = new Button("Calculate");
+        Button clearBtn = new Button("Clear");
+        Button copyBtn = new Button("Copy");
 
-    // Copy button
-    Button copyBtn = new Button("Copy");
+        HBox buttonRow = new HBox(5,
+            new HBox(5, calculateBtn, clearBtn, copyBtn),
+            offsetRow
+        );
+        buttonRow.setAlignment(Pos.CENTER);
 
-    // Horizontal row for buttons and offset output
-    HBox buttonRow = new HBox(5,
-        new HBox(5, calculateBtn, clearBtn, copyBtn),
-        offsetRow
-    );
-    buttonRow.setAlignment(Pos.CENTER);
+        ImageView imageView = new ImageView();
+        imageView.setFitWidth(320);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(false);
 
-    // Create image
-    ImageView imageView = new ImageView();
-    imageView.setFitWidth(300);          // Adjust as needed
-    imageView.setPreserveRatio(true);    // Keep aspect ratio
-    imageView.setSmooth(false);
+        Map<String, Image> imageCache = new HashMap<>();
+        imageCache.put("1", new Image(getClass().getResource("/images/KeywayBottom.PNG").toExternalForm()));
+        imageCache.put("2", new Image(getClass().getResource("/images/KeywayFlat.PNG").toExternalForm()));
+        imageCache.put("3", new Image(getClass().getResource("/images/KeywayTop.PNG").toExternalForm()));
 
-    // Show the default image when the app loads
-    String initialImage = "KeywayBottom.PNG";
-    Image image = new Image(getClass().getResource("/images/" + initialImage).toExternalForm());
-    imageView.setImage(image);
+        imageView.setImage(imageCache.get("1"));
 
-    // Calculate button press
-    calculateBtn.setOnAction(e -> {
-    try {
-        String method = methodSelector.getValue();
+        TextArea logArea = new TextArea();
+        logArea.setEditable(false);
+        logArea.setPrefHeight(100);
+        logArea.setWrapText(true);
+        logArea.setPromptText("Calculation log...");
+        logArea.setVisible(true);
 
-        double a = ExpressionEvaluator.evaluate(inputA.getText());
-        double b = ExpressionEvaluator.evaluate(inputB.getText());
+        calculateBtn.setOnAction(e -> {
+            try {
+                String method = methodSelector.getValue();
+                String methodNumber = method.substring(0, 2); // Extracts "1.", "2.", or "3."
 
-        System.out.println("A = " + inputA.getText() + " → " + a);
-        System.out.println("B = " + inputB.getText() + " → " + b);
+                double a = ExpressionEvaluator.evaluate(inputA.getText());
+                double b = ExpressionEvaluator.evaluate(inputB.getText());
 
-        double result = 0;
+                double result = 0;
+                String logEntry;
 
-        if (method.startsWith("1")) {
-            result = KeywayCalculator.fromBottomOfDiameter(a, b);
-        } else if (method.startsWith("2")) {
-            double c = ExpressionEvaluator.evaluate(inputC.getText());
-            System.out.println("C = " + inputC.getText() + " → " + c);
-            result = KeywayCalculator.fromTopFlat(a, b, c);
-        } else if (method.startsWith("3")) {
-            result = KeywayCalculator.fromTopOfDiameter(a, b);
-        }
+                if (method.startsWith("1")) {
+                    result = KeywayCalculator.fromBottomOfDiameter(a, b);
+                    logEntry = String.format("%s -> A: %.4f, B: %.4f, Offset: %.4f", methodNumber, a, b, result);
+                } else if (method.startsWith("2")) {
+                    double c = ExpressionEvaluator.evaluate(inputC.getText());
+                    result = KeywayCalculator.fromTopFlat(a, b, c);
+                    logEntry = String.format("%s -> A: %.4f, B: %.4f, C: %.4f, Offset: %.4f", methodNumber, a, b, c, result);
+                } else {
+                    result = KeywayCalculator.fromTopOfDiameter(a, b);
+                    logEntry = String.format("%s -> A: %.4f, B: %.4f, Offset: %.4f", methodNumber, a, b, result);
+                }
 
-        resultLabel.setText(String.format("%.4f", result));
-        } catch (Exception ex) {
-            ex.printStackTrace(); // helpful while debugging
-            resultLabel.setText("Error");
-        }
-    });
+                resultLabel.setText(String.format("%.4f", result));
+                calculationLog.add(logEntry);
+                logArea.clear();
+                calculationLog.forEach(entry -> logArea.appendText(entry + "\n"));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                resultLabel.setText("Error");
+            }
+        });
 
-    // Clear button press
-    clearBtn.setOnAction(e -> {
-        inputA.clear();
-        inputB.clear();
-        inputC.clear();
-        resultLabel.setText("      ");
-    });
+        clearBtn.setOnAction(e -> {
+            inputA.clear();
+            inputB.clear();
+            inputC.clear();
+            resultLabel.setText("      ");
+        });
 
-    // Copy button press
-    copyBtn.setOnAction(e -> {
-    String resultText = resultLabel.getText();
-        if (!resultText.equals("      ") && !resultText.equals("Error")) {
-            Clipboard clipboard = Clipboard.getSystemClipboard();
-            ClipboardContent content = new ClipboardContent();
-            content.putString(resultText);
-            clipboard.setContent(content);
-        }
-    });
+        copyBtn.setOnAction(e -> {
+            String resultText = resultLabel.getText();
+            if (!resultText.equals("      ") && !resultText.equals("Error")) {
+                Clipboard clipboard = Clipboard.getSystemClipboard();
+                ClipboardContent content = new ClipboardContent();
+                content.putString(resultText);
+                clipboard.setContent(content);
+            }
+        });
 
-    // When dropdown changes, update input labels/visibility
-    methodSelector.setOnAction(e -> {
-        String method = methodSelector.getValue();
+        methodSelector.setOnAction(e -> {
+            String method = methodSelector.getValue();
 
-        // Set input prompts and input visibility...
-        if (method.startsWith("2")) {
-            inputA.setPromptText("Keyway Depth (A)");
-            inputB.setPromptText("Keyway Width (B)");
-            inputC.setPromptText("Diameter (C)");
-            inputC.setVisible(true);
-        } else {
-            inputA.setPromptText("Diameter (A)");
-            inputB.setPromptText("Distance or Depth (B)");
-            inputC.setVisible(false);
-        }
+            if (method.startsWith("2")) {
+                inputA.setPromptText("Keyway Depth (A)");
+                inputB.setPromptText("Keyway Width (B)");
+                inputC.setPromptText("Diameter (C)");
+                inputC.setVisible(true);
+            } else {
+                inputA.setPromptText("Diameter (A)");
+                inputB.setPromptText("Distance or Depth (B)");
+                inputC.setVisible(false);
+            }
 
-        // Update the image based on the selected method
-        String imageFile = switch (method.charAt(0)) {
-            case '1' -> "KeywayBottom.PNG";
-            case '2' -> "KeywayFlat.PNG";
-            case '3' -> "KeywayTop.PNG";
-            default -> null;
-        };
+            String key = String.valueOf(method.charAt(0));
+            imageView.setImage(imageCache.getOrDefault(key, null));
+            resultLabel.setText("      ");
+        });
 
-        if (imageFile != null) {
-            imageView.setImage(new Image(getClass().getResource("/images/" + imageFile).toExternalForm()));
-        }
+        VBox layout = new VBox(15,
+            methodSelector,
+            inputA,
+            inputB,
+            inputC,
+            buttonRow,
+            imageView,
+            logArea
+        );
+        layout.setAlignment(Pos.TOP_CENTER);
+        layout.setPadding(new Insets(20));
 
-        // Keep or clear other UI as needed
-        resultLabel.setText("      ");
-    });
-
-    VBox layout = new VBox(15,
-        methodSelector,
-        inputA,
-        inputB,
-        inputC,
-        buttonRow,
-        imageView
-    );
-    layout.setAlignment(Pos.TOP_CENTER);
-    layout.setPadding(new Insets(20));
-
-    Scene scene = new Scene(layout, 360, 475);
-    scene.getStylesheets().add(getClass().getResource("/styles/style.css").toExternalForm());
-    stage.setTitle("Keyway Offset Calculator");
-    stage.setScene(scene);
-    stage.show();
-}
+        Scene scene = new Scene(layout, 370, 550);
+        scene.getStylesheets().add(getClass().getResource("/styles/style.css").toExternalForm());
+        stage.setTitle("Keyway Offset Calculator");
+        stage.setScene(scene);
+        stage.show();
+    }
 
     public static void main(String[] args) {
         launch();
     }
-
-}
+} 
